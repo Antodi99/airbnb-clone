@@ -12,7 +12,6 @@ const bcryptSalt = bcrypt.genSaltSync(10)
 const jwtSecret = 'gasdasfdsfgdfkgodf'
 const dbConnectionString = "mongodb://admin:secret@localhost:27017/airbnb_clone";
 
-
 async function main() {
     app.use(express.json());
     app.use(cookieParser())
@@ -53,7 +52,6 @@ async function main() {
         jwt.sign({
             email: userDoc.email,
             id: userDoc._id,
-            name: userDoc.name
         }, jwtSecret, {}, (err, token) => {
             if (err) throw err
             res.cookie('token', token).json(userDoc)
@@ -66,9 +64,13 @@ async function main() {
         if (!token) {
             return res.status(401).json({ message: 'Unauthorized' })
         }
-        jwt.verify(token, jwtSecret, {}, (err, user) => {
+        jwt.verify(token, jwtSecret, {}, async (err, userData) => {
             if (err) throw err
-            res.json(user)
+            const user = await UserModel.findById((userData as any)?.id)
+            if (!user) {
+                return res.status(404).json({ message: 'Not Found' })
+            }
+            res.json({ id: user.id, email: user.email, name: user.name })
         })
     })
 
