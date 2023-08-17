@@ -4,6 +4,7 @@ import mongoose from 'mongoose'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import cookieParser from 'cookie-parser'
+import imageDownloader from 'image-downloader'
 import { UserModel } from './models/User'
 require('dotenv').config()
 const app = express();
@@ -15,6 +16,7 @@ const dbConnectionString = "mongodb://admin:secret@localhost:27017/airbnb_clone"
 async function main() {
     app.use(express.json());
     app.use(cookieParser())
+    app.use('/uploads', express.static(__dirname + '/uploads'))
     app.use(cors({
         credentials: true,
         origin: 'http://localhost:5173',
@@ -76,6 +78,17 @@ async function main() {
 
     app.post('/logout', (req, res) => {
         res.cookie('token', '').status(204).send()
+    })
+
+    app.post('/upload-by-link', async (req, res) => {
+        const { link } = req.body
+        const newName = 'photo' + Date.now() + '.jpg'
+
+        await imageDownloader.image({
+            url: link,
+            dest: __dirname + '/uploads/' + newName
+        })
+        res.json(newName)
     })
 
     app.listen(4000)
