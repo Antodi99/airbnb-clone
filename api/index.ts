@@ -74,6 +74,10 @@ async function main() {
         })
     })
 
+    app.post('/logout', (req, res) => {
+        res.cookie('token', '').status(204).send()
+    })
+
     app.listen(4000)
 }
 
