@@ -6,6 +6,10 @@ import jwt from 'jsonwebtoken'
 import cookieParser from 'cookie-parser'
 import imageDownloader from 'image-downloader'
 import { UserModel } from './models/User'
+import { PlaceModel } from './models/Place'
+import multer from 'multer'
+import fs from 'fs'
+
 require('dotenv').config()
 const app = express();
 
@@ -89,6 +93,77 @@ async function main() {
             dest: __dirname + '/uploads/' + newName
         })
         res.json(newName)
+    })
+
+    const photosMiddleware = multer({ dest: 'uploads' })
+    app.post('/upload', photosMiddleware.array('photos', 100), (req, res) => {
+        const files = req.files as Express.Multer.File[] | undefined
+        if (!files) {
+            return res.status(400).json({ message: 'Photos wasnt passed' })
+        }
+
+        const uploadedFiles = []
+        for (let i = 0; i < files.length; i++) {
+            const { path, originalname } = files[i]
+            const parts = originalname.split('.')
+            const ext = parts[parts.length - 1]
+            const newPath = path + '.' + ext
+            fs.renameSync(path, newPath)
+            uploadedFiles.push(newPath.replace('uploads/', ''))
+        }
+        res.status(200).json(uploadedFiles)
+    })
+
+    app.post('/places', (req, res) => {
+        const { token } = req.cookies
+        const {
+            title, address, addedPhotos, description, perks,
+            extraInfo, checkIn, checkOut, maxGuests
+        } = req.body
+        jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+            if (err) throw err
+            const placeDoc = await PlaceModel.create({
+                owner: (userData as any)?.id,
+                title, address, photos: addedPhotos, description, perks,
+                extraInfo, checkIn, checkOut, maxGuests
+            })
+            res.status(200).json(placeDoc)
+        })
+    })
+
+    app.get('/places', (req, res) => {
+        const { token } = req.cookies
+        jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+            const { id } = userData as any
+            res.status(200).json(await PlaceModel.find({ owner: id }))
+        })
+    })
+
+    app.get('/places/:id', async (req, res) => {
+        const { id } = req.params
+        res.json(await PlaceModel.findById(id))
+    })
+
+    app.put('/places', async (req, res) => {
+        const { token } = req.cookies
+        const {
+            id, title, address, addedPhotos, description, perks,
+            extraInfo, checkIn, checkOut, maxGuests
+        } = req.body
+
+        jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+            if (err) throw err
+            const placeDoc = await PlaceModel.findById(id)
+
+            if ((userData as any)?.id === placeDoc?.owner.toString()) {
+                placeDoc?.set({
+                    title, address, photos: addedPhotos, description, perks,
+                    extraInfo, checkIn, checkOut, maxGuests
+                })
+                await placeDoc?.save()
+                res.status(200).json({ message: 'OK' })
+            }
+        })
     })
 
     app.listen(4000)
