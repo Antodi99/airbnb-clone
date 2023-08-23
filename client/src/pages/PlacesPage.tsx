@@ -3,7 +3,7 @@ import AccountNav from '../AccountNav';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-type Place = {
+export type Place = {
   owner: string,
   title: string,
   address: string,
@@ -13,14 +13,15 @@ type Place = {
   extraInfo: string,
   checkIn: number,
   checkOut: number,
-  maxGuests: number
+  maxGuests: number,
+  price: number
 }
 
 export default function PlacesPage() {
   const [places, setPlaces] = useState<Place[]>([])
 
   useEffect(() => {
-    axios.get('/places').then(({ data }) => {
+    axios.get('/user-places').then(({ data }) => {
       setPlaces(data)
     })
   }, [])

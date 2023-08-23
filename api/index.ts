@@ -118,20 +118,20 @@ async function main() {
         const { token } = req.cookies
         const {
             title, address, addedPhotos, description, perks,
-            extraInfo, checkIn, checkOut, maxGuests
+            extraInfo, checkIn, checkOut, maxGuests, price
         } = req.body
         jwt.verify(token, jwtSecret, {}, async (err, userData) => {
             if (err) throw err
             const placeDoc = await PlaceModel.create({
                 owner: (userData as any)?.id,
                 title, address, photos: addedPhotos, description, perks,
-                extraInfo, checkIn, checkOut, maxGuests
+                extraInfo, checkIn, checkOut, maxGuests, price
             })
             res.status(200).json(placeDoc)
         })
     })
 
-    app.get('/places', (req, res) => {
+    app.get('/user-places', (req, res) => {
         const { token } = req.cookies
         jwt.verify(token, jwtSecret, {}, async (err, userData) => {
             const { id } = userData as any
@@ -148,7 +148,7 @@ async function main() {
         const { token } = req.cookies
         const {
             id, title, address, addedPhotos, description, perks,
-            extraInfo, checkIn, checkOut, maxGuests
+            extraInfo, checkIn, checkOut, maxGuests, price
         } = req.body
 
         jwt.verify(token, jwtSecret, {}, async (err, userData) => {
@@ -158,12 +158,16 @@ async function main() {
             if ((userData as any)?.id === placeDoc?.owner.toString()) {
                 placeDoc?.set({
                     title, address, photos: addedPhotos, description, perks,
-                    extraInfo, checkIn, checkOut, maxGuests
+                    extraInfo, checkIn, checkOut, maxGuests, price
                 })
                 await placeDoc?.save()
                 res.status(200).json({ message: 'OK' })
             }
         })
+    })
+
+    app.get('/places', async (req, res) => {
+        res.status(200).json(await PlaceModel.find())
     })
 
     app.listen(4000)
