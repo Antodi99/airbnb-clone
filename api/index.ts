@@ -30,6 +30,15 @@ async function main() {
     await mongoose.connect(dbConnectionString)
     console.log('Connected to DB')
 
+    function getUserDataFromReq(req: any) {
+        return new Promise((res, rej) => {
+            jwt.verify(req.cookies.token, jwtSecret, {}, async (err, userData) => {
+                if (err) throw err
+                res(userData)
+            })
+        })
+    }
+
     app.post('/register', async (req, res) => {
         const { name, email, password } = req.body
         try {
@@ -171,18 +180,25 @@ async function main() {
         res.status(200).json(await PlaceModel.find())
     })
 
-    app.post('/bookings', (req, res) => {
+    app.post('/bookings', async (req, res) => {
+        const userData = await getUserDataFromReq(req)
         const { place, checkIn, checkOut,
             numberOfGuests, name, phone, price
         } = req.body
         BookingModel.create({
             place, checkIn, checkOut,
-            numberOfGuests, name, phone, price
+            numberOfGuests, name, phone, price,
+            user: (userData as any).id
         }).then((doc) => {
             res.status(200).json(doc)
         }).catch((err) => {
             throw err
         })
+    })
+
+    app.get('/bookings', async (req, res) => {
+        const userData = await getUserDataFromReq(req)
+        res.json(await BookingModel.find({ user: (userData as any).id }).populate('place'))
     })
 
     app.listen(4000)
