@@ -9,6 +9,7 @@ import { UserModel } from './models/User'
 import { PlaceModel } from './models/Place'
 import multer from 'multer'
 import fs from 'fs'
+import { BookingModel } from './models/Booking'
 
 require('dotenv').config()
 const app = express();
@@ -168,6 +169,20 @@ async function main() {
 
     app.get('/places', async (req, res) => {
         res.status(200).json(await PlaceModel.find())
+    })
+
+    app.post('/bookings', (req, res) => {
+        const { place, checkIn, checkOut,
+            numberOfGuests, name, phone, price
+        } = req.body
+        BookingModel.create({
+            place, checkIn, checkOut,
+            numberOfGuests, name, phone, price
+        }).then((doc) => {
+            res.status(200).json(doc)
+        }).catch((err) => {
+            throw err
+        })
     })
 
     app.listen(4000)
