@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 export type Place = {
+  _id: string;
   owner: string,
   title: string,
   address: string,
