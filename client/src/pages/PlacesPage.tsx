@@ -27,6 +27,7 @@ export default function PlacesPage() {
       setPlaces(data)
     })
   }, [])
+  
   return (
     <div className='px-8 max-w-5xl'>
       <AccountNav />

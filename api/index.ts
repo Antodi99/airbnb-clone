@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { Request } from 'express'
 import cors from 'cors'
 import mongoose from 'mongoose'
 import bcrypt from 'bcryptjs'
@@ -12,11 +12,13 @@ import fs from 'fs'
 import { BookingModel } from './models/Booking'
 
 require('dotenv').config()
-const app = express();
+const BCRYPT_SALT = bcrypt.genSaltSync(10)
+const {
+    JWT_TOKEN_SECRET,
+    DB_CONNECTION_STR
+} = process.env
 
-const bcryptSalt = bcrypt.genSaltSync(10)
-const jwtSecret = 'gasdasfdsfgdfkgodf'
-const dbConnectionString = "mongodb://admin:secret@localhost:27017/airbnb_clone";
+const app = express();
 
 async function main() {
     app.use(express.json());
@@ -27,13 +29,13 @@ async function main() {
         origin: 'http://localhost:5173',
     }))
 
-    await mongoose.connect(dbConnectionString)
+    await mongoose.connect(DB_CONNECTION_STR as string)
     console.log('Connected to DB')
 
-    function getUserDataFromReq(req: any) {
+    function getUserDataFromReq(req: Request) {
         return new Promise((res, rej) => {
-            jwt.verify(req.cookies.token, jwtSecret, {}, async (err, userData) => {
-                if (err) throw err
+            jwt.verify(req.cookies.token, JWT_TOKEN_SECRET as string, {}, async (err, userData) => {
+                if (err) return rej(err)
                 res(userData)
             })
         })
@@ -45,7 +47,7 @@ async function main() {
             const userDoc = await UserModel.create({
                 name,
                 email,
-                password: bcrypt.hashSync(password, bcryptSalt),
+                password: bcrypt.hashSync(password, BCRYPT_SALT),
             })
             res.status(200).json(userDoc)
         } catch (e) {
@@ -68,7 +70,7 @@ async function main() {
         jwt.sign({
             email: userDoc.email,
             id: userDoc._id,
-        }, jwtSecret, {}, (err, token) => {
+        }, JWT_TOKEN_SECRET as string, {}, (err, token) => {
             if (err) throw err
             res.cookie('token', token).json(userDoc)
         })
@@ -77,10 +79,12 @@ async function main() {
 
     app.get('/profile', (req, res) => {
         const { token } = req.cookies
+
         if (!token) {
             return res.status(401).json({ message: 'Unauthorized' })
         }
-        jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+
+        jwt.verify(token, JWT_TOKEN_SECRET as string, {}, async (err, userData) => {
             if (err) throw err
             const user = await UserModel.findById((userData as any)?.id)
             if (!user) {
@@ -130,7 +134,7 @@ async function main() {
             title, address, addedPhotos, description, perks,
             extraInfo, checkIn, checkOut, maxGuests, price
         } = req.body
-        jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+        jwt.verify(token, JWT_TOKEN_SECRET as string, {}, async (err, userData) => {
             if (err) throw err
             const placeDoc = await PlaceModel.create({
                 owner: (userData as any)?.id,
@@ -143,7 +147,7 @@ async function main() {
 
     app.get('/user-places', (req, res) => {
         const { token } = req.cookies
-        jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+        jwt.verify(token, JWT_TOKEN_SECRET as string, {}, async (err, userData) => {
             const { id } = userData as any
             res.status(200).json(await PlaceModel.find({ owner: id }))
         })
@@ -161,7 +165,7 @@ async function main() {
             extraInfo, checkIn, checkOut, maxGuests, price
         } = req.body
 
-        jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+        jwt.verify(token, JWT_TOKEN_SECRET as string, {}, async (err, userData) => {
             if (err) throw err
             const placeDoc = await PlaceModel.findById(id)
 

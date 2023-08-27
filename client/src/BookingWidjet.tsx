@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { Place } from "./pages/PlacesPage";
 import { differenceInCalendarDays } from "date-fns";
 import axios from "axios";
-import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { UserContext } from "./UserContext";
 
 type BookingWidjetType = {
@@ -15,8 +15,8 @@ export default function BookingWidjet({ place }: BookingWidjetType) {
     const [numberOfGuests, setNumberOfGuest] = useState(1)
     const [name, setName] = useState('')
     const [phone, setPhone] = useState('')
-    const [redirect, setRedirect] = useState('')
 
+    const navigate = useNavigate()
     const { user } = useContext(UserContext)
 
     useEffect(() => {
@@ -37,11 +37,7 @@ export default function BookingWidjet({ place }: BookingWidjetType) {
             price: numberOfNights * place.price,
         })
         const bookingId = resp.data._id
-        setRedirect(`/account/bookings/${bookingId}`)
-    }
-
-    if (redirect) {
-        return <Navigate to={redirect} />
+        navigate(`/account/bookings/${bookingId}`)
     }
 
     return (

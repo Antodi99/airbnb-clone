@@ -38,26 +38,7 @@ export default function PlacesFormPage() {
         })
     }, [id])
 
-    function inputHeader(text: string) {
-        return (
-            <h2 className='text-2xl mt-4'>{text}</h2>
-        )
-    }
 
-    function inputDescription(text: string) {
-        return (
-            <p className='text-gray-500 text-sm'>{text}</p>
-        )
-    }
-
-    function preInput(header: string, description: string) {
-        return (
-            <>
-                {inputHeader(header)}
-                {inputDescription(description)}
-            </>
-        )
-    }
 
     async function savePlace(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
@@ -91,21 +72,21 @@ export default function PlacesFormPage() {
         <div>
             <AccountNav />
             <form onSubmit={savePlace}>
-                {preInput('Title', 'Title for you place. Should be short and catchy as in advertisement')}
+                <PreInput header='Title' description='Title for you place. Should be short and catchy as in advertisement' />
                 <input type='text' value={title} onChange={(e) => setTitle(e.target.value)} placeholder='title, for example: My lovely apt' />
-                {preInput('Address', 'Address of this place')}
+                <PreInput header='Address' description='Address of this place' />
                 <input type='text' value={address} onChange={(e) => setAddress(e.target.value)} placeholder='address' />
-                {preInput('Photos', 'Photos of this place')}
+                <PreInput header='Photos' description='Photos of this place' />
                 <PhotosUploader addedPhotos={addedPhotos} onChange={setAddedPhotos} />
-                {preInput('Description', 'Description of this place')}
+                <PreInput header='Description' description='Description of this place' />
                 <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
-                {preInput('Perks', 'Select all the perks of your place')}
+                <PreInput header='Perks' description='Select all the perks of your place' />
                 <div className='grid mt-2 gap-2 grid-cols-2 md:grid-cols-3 lg:grid-cols-6'>
                     <Perks selected={perks} onChange={setPerks} />
                 </div>
-                {preInput('Extra info', 'House rules, etc')}
+                <PreInput header='Extra info' description='House rules, etc' />
                 <textarea value={extraInfo} onChange={(e) => setExtraInfo(e.target.value)} />
-                {preInput('Check in&out times', 'Add check in and out times, remember to have some time for cleaning the room between guests')}
+                <PreInput header='Check in&out times' description='Add check in and out times, remember to have some time for cleaning the room between guests' />
                 <div className='grid gap-2 grid-cols-2 md:grid-cols-4'>
                     <div>
                         <h3 className='mt-2 -mb-1'>Check in time</h3>
@@ -137,5 +118,14 @@ export default function PlacesFormPage() {
                 </div>
             </form>
         </div>
+    )
+}
+
+function PreInput({ header, description }: { header: string, description: string }) {
+    return (
+        <>
+            <h2 className='text-2xl mt-4'>{header}</h2>
+            <p className='text-gray-500 text-sm'>{description}</p>
+        </>
     )
 }
