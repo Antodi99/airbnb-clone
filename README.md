@@ -1,6 +1,6 @@
 # Airbnb Clone
 
-![1]()
+![1](https://github.com/Antodi99/airbnb-clone/blob/main/client/src/assets/1.png?raw=true)
 
 ## Technologies used:
 
